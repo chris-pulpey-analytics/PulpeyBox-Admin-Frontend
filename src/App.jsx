@@ -8,12 +8,15 @@ import UsersPage from './pages/Users'
 import UserDetail from './pages/Users/UserDetail'
 import SurveysPage from './pages/Surveys'
 import SurveyForm from './pages/Surveys/SurveyForm'
+import SurveyDetail from './pages/Surveys/SurveyDetail'
 import NewsPage from './pages/News'
 import NewsForm from './pages/News/NewsForm'
 import SettingsPage from './pages/Settings'
 import LocationsPage from './pages/Locations'
 import ContactPage from './pages/ContactUs'
 import MapPage from './pages/Map'
+import AdminUsersPage from './pages/AdminUsers'
+import ReportsPage from './pages/Reports'
 
 function ProtectedRoute({ children }) {
   const isAuth = useSelector(selectIsAuthenticated)
@@ -40,6 +43,7 @@ export default function App() {
           <Route path="surveys" element={<SurveysPage />} />
           <Route path="surveys/new" element={<SurveyForm />} />
           <Route path="surveys/:id/edit" element={<SurveyForm />} />
+          <Route path="surveys/:id/detail" element={<SurveyDetail />} />
           <Route path="news" element={<NewsPage />} />
           <Route path="news/new" element={<NewsForm />} />
           <Route path="news/:id/edit" element={<NewsForm />} />
@@ -47,6 +51,8 @@ export default function App() {
           <Route path="locations" element={<LocationsPage />} />
           <Route path="contact" element={<ContactPage />} />
           <Route path="map" element={<MapPage />} />
+          <Route path="admin-users" element={<AdminUsersPage />} />
+          <Route path="reports" element={<ReportsPage />} />
         </Route>
         <Route path="*" element={<Navigate to="/dashboard" replace />} />
       </Routes>

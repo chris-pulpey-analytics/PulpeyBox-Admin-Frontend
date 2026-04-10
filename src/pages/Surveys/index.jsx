@@ -6,7 +6,7 @@ import { exportSurveyUsers, downloadBlob } from '../../store/api/surveysApi'
 import Pagination from '../../components/ui/Pagination'
 import Modal from '../../components/ui/Modal'
 import ExportButton from '../../components/ui/ExportButton'
-import { Plus, Search, Eye, Pencil, Trash2, Link } from 'lucide-react'
+import { Plus, Search, BarChart2, Pencil, Trash2, Link } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 export default function SurveysPage() {
@@ -98,6 +98,7 @@ export default function SurveysPage() {
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-1">
+                      <button onClick={() => navigate(`/surveys/${s.Id}/detail`)} className="btn-ghost btn-sm text-violet-500" title="Ver respuestas"><BarChart2 size={13} /></button>
                       <button onClick={() => navigate(`/surveys/${s.Id}/edit`)} className="btn-ghost btn-sm" title="Editar"><Pencil size={13} /></button>
                       <button onClick={() => { setLinkModal(s); setSelectedNews('') }} className="btn-ghost btn-sm" title="Vincular a noticia"><Link size={13} /></button>
                       <ExportButton onExport={(fmt) => handleExportUsers(s.Id, fmt)} />

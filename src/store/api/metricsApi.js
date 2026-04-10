@@ -3,7 +3,7 @@ import { baseApi } from './baseApi'
 export const metricsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getMetrics: builder.query({
-      query: () => '/metrics',
+      query: (params = {}) => ({ url: '/metrics', params }),
       providesTags: ['Metrics'],
     }),
     getMapPoints: builder.query({

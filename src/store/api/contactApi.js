@@ -19,13 +19,14 @@ export const exportContact = (params = {}, format = 'xlsx') => {
   })
 }
 
-// Asegúrate de que tenga la palabra 'export'
-export const downloadBlob = (data, fileName) => {
-  const url = window.URL.createObjectURL(new Blob([data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', fileName);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-};
+export const downloadBlob = async (response, fileName) => {
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
+}

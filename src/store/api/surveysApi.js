@@ -30,6 +30,77 @@ export const surveysApi = baseApi.injectEndpoints({
       }),
       invalidatesTags: ['News'],
     }),
+    getSurveyResponses: builder.query({
+      query: (id) => `/surveys/${id}/responses`,
+    }),
+    // Questions (ProductsSurvey)
+    getSurveyQuestions: builder.query({
+      query: (id) => `/surveys/${id}/questions`,
+      providesTags: (r, e, id) => [{ type: 'SurveyQuestions', id }],
+    }),
+    createSurveyQuestion: builder.mutation({
+      query: ({ surveyId, product_name }) => ({
+        url: `/surveys/${surveyId}/questions`,
+        method: 'POST',
+        body: { product_name },
+      }),
+      invalidatesTags: (_r, _e, { surveyId }) => [{ type: 'SurveyQuestions', id: surveyId }],
+    }),
+    updateSurveyQuestion: builder.mutation({
+      query: ({ surveyId, qId, product_name }) => ({
+        url: `/surveys/${surveyId}/questions/${qId}`,
+        method: 'PUT',
+        body: { product_name },
+      }),
+      invalidatesTags: (_r, _e, { surveyId }) => [{ type: 'SurveyQuestions', id: surveyId }],
+    }),
+    deleteSurveyQuestion: builder.mutation({
+      query: ({ surveyId, qId }) => ({
+        url: `/surveys/${surveyId}/questions/${qId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_r, _e, { surveyId }) => [{ type: 'SurveyQuestions', id: surveyId }],
+    }),
+    // Answers (AnswersSurveys)
+    getSurveyAnswers: builder.query({
+      query: (id) => `/surveys/${id}/answers`,
+      providesTags: (_r, _e, id) => [{ type: 'SurveyAnswers', id }],
+    }),
+    createSurveyAnswer: builder.mutation({
+      query: ({ surveyId, answer }) => ({
+        url: `/surveys/${surveyId}/answers`,
+        method: 'POST',
+        body: { answer },
+      }),
+      invalidatesTags: (_r, _e, { surveyId }) => [{ type: 'SurveyAnswers', id: surveyId }],
+    }),
+    updateSurveyAnswer: builder.mutation({
+      query: ({ surveyId, aId, answer }) => ({
+        url: `/surveys/${surveyId}/answers/${aId}`,
+        method: 'PUT',
+        body: { answer },
+      }),
+      invalidatesTags: (_r, _e, { surveyId }) => [{ type: 'SurveyAnswers', id: surveyId }],
+    }),
+    deleteSurveyAnswer: builder.mutation({
+      query: ({ surveyId, aId }) => ({
+        url: `/surveys/${surveyId}/answers/${aId}`,
+        method: 'DELETE',
+      }),
+      invalidatesTags: (_r, _e, { surveyId }) => [{ type: 'SurveyAnswers', id: surveyId }],
+    }),
+    // User assignment
+    previewUsersForSurvey: builder.query({
+      query: ({ surveyId, ...params }) => ({ url: `/surveys/${surveyId}/preview-users`, params }),
+    }),
+    assignUsersToSurvey: builder.mutation({
+      query: ({ surveyId, ...body }) => ({
+        url: `/surveys/${surveyId}/assign-users`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['Surveys'],
+    }),
   }),
 })
 
@@ -40,6 +111,17 @@ export const {
   useUpdateSurveyMutation,
   useDeleteSurveyMutation,
   useLinkSurveyToNewsMutation,
+  useGetSurveyResponsesQuery,
+  useGetSurveyQuestionsQuery,
+  useCreateSurveyQuestionMutation,
+  useUpdateSurveyQuestionMutation,
+  useDeleteSurveyQuestionMutation,
+  useGetSurveyAnswersQuery,
+  useCreateSurveyAnswerMutation,
+  useUpdateSurveyAnswerMutation,
+  useDeleteSurveyAnswerMutation,
+  usePreviewUsersForSurveyQuery,
+  useAssignUsersToSurveyMutation,
 } = surveysApi
 
 export const exportSurveyUsers = (surveyId, format = 'xlsx') => {
@@ -49,13 +131,31 @@ export const exportSurveyUsers = (surveyId, format = 'xlsx') => {
   })
 }
 
-// Asegúrate de que tenga la palabra 'export'
-export const downloadBlob = (data, fileName) => {
-  const url = window.URL.createObjectURL(new Blob([data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', fileName);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-};
+export const downloadBlob = async (response, fileName) => {
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
+}
+
+export const exportSurveys = (params = {}, format = 'xlsx') => {
+  const query = new URLSearchParams({ ...params, format })
+  const token = localStorage.getItem('admin_token')
+  return fetch(`/api/surveys/export?${query}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export const generateInternalReport = (surveyIds, statusId) => {
+  const token = localStorage.getItem('admin_token')
+  return fetch('/api/surveys/internal-report', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ survey_ids: surveyIds, status_id: statusId || null }),
+  })
+}
