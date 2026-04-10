@@ -1,0 +1,44 @@
+@import 'leaflet/dist/leaflet.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  body { @apply bg-slate-50 text-slate-800 antialiased; font-family: 'Inter', system-ui, sans-serif; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { @apply bg-slate-100; }
+  ::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
+}
+
+@layer components {
+  .btn { @apply inline-flex items-center gap-2 font-medium rounded-lg transition-all duration-150 focus:outline-none focus:ring-2 focus:ring-offset-1 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer; }
+  .btn-sm { @apply px-3 py-1.5 text-xs; }
+  .btn-md { @apply px-4 py-2 text-sm; }
+  .btn-lg { @apply px-5 py-2.5 text-sm; }
+  .btn-primary { @apply btn btn-md bg-violet-600 hover:bg-violet-700 text-white focus:ring-violet-500 shadow-sm; }
+  .btn-secondary { @apply btn btn-md bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 focus:ring-slate-300 shadow-sm; }
+  .btn-danger { @apply btn btn-md bg-red-500 hover:bg-red-600 text-white focus:ring-red-400 shadow-sm; }
+  .btn-ghost { @apply btn btn-md hover:bg-slate-100 text-slate-600; }
+  .input { @apply w-full border border-slate-200 rounded-lg px-3 py-2 text-sm bg-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-violet-500 focus:border-transparent transition-all; }
+  .label { @apply block text-xs font-semibold text-slate-500 mb-1.5 uppercase tracking-wide; }
+  .card { @apply bg-white rounded-2xl shadow-sm border border-slate-100 p-6; }
+  .card-sm { @apply bg-white rounded-xl shadow-sm border border-slate-100 p-4; }
+  .table-row { @apply border-b border-slate-50 hover:bg-violet-50/30 transition-colors; }
+  .badge { @apply inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold; }
+  .badge-green { @apply badge bg-emerald-100 text-emerald-700; }
+  .badge-yellow { @apply badge bg-amber-100 text-amber-700; }
+  .badge-red { @apply badge bg-red-100 text-red-700; }
+  .badge-blue { @apply badge bg-blue-100 text-blue-700; }
+  .badge-gray { @apply badge bg-slate-100 text-slate-600; }
+  .badge-violet { @apply badge bg-violet-100 text-violet-700; }
+  .sidebar-link { @apply flex items-center gap-3 px-3 py-2.5 rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-all duration-150 text-sm font-medium; }
+  .sidebar-link.active { @apply text-white bg-violet-600 shadow-lg shadow-violet-900/30; }
+}
+
+/* Leaflet fix */
+.leaflet-container { z-index: 1; border-radius: 1rem; }
+.leaflet-control-zoom { border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important; }
+.leaflet-control-zoom a { border: none !important; color: #475569 !important; font-weight: 600 !important; }
