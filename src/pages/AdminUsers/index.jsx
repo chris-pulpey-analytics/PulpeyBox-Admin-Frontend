@@ -11,7 +11,7 @@ import Modal from '../../components/ui/Modal'
 import { Plus, Pencil, Trash2, KeyRound, ToggleLeft, ToggleRight, ShieldCheck, Tag } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const EMPTY_FORM = { name: '', last_name: '', email: '', password: '', role_id: '' }
+const EMPTY_FORM = { name: '', last_name: '', email: '', password: '', role_id: '', mobil_number: '' }
 
 export default function AdminUsersPage() {
   const currentUser = useSelector(selectCurrentUser)
@@ -38,13 +38,13 @@ export default function AdminUsersPage() {
 
   // Role form
   const [roleModal, setRoleModal] = useState(null) // null | 'create' | 'edit'
-  const [roleForm, setRoleForm] = useState({ rol_name: '' })
+  const [roleForm, setRoleForm] = useState({ rol_name: '', description: '' })
   const [selectedRole, setSelectedRole] = useState(null)
 
   const openCreate = () => { setForm(EMPTY_FORM); setModal('create') }
   const openEdit = (u) => {
     setSelected(u)
-    setForm({ name: u.Name, last_name: u.LastName, email: u.Email, role_id: u.role_id, password: '' })
+    setForm({ name: u.Name, last_name: u.LastName, email: u.Email, role_id: u.role_id, password: '', mobil_number: u.MobilNumber || '' })
     setModal('edit')
   }
   const openPassword = (u) => { setSelected(u); setNewPassword(''); setModal('password') }
@@ -65,7 +65,7 @@ export default function AdminUsersPage() {
   const handleUpdate = async () => {
     setSaving(true)
     try {
-      await updateUser({ id: selected.Id, name: form.name, last_name: form.last_name, email: form.email, role_id: Number(form.role_id) }).unwrap()
+      await updateUser({ id: selected.Id, name: form.name, last_name: form.last_name, email: form.email, role_id: Number(form.role_id), mobil_number: form.mobil_number || undefined }).unwrap()
       toast.success('Usuario actualizado'); setModal(null)
     } catch { toast.error('Error al actualizar') } finally { setSaving(false) }
   }
@@ -93,14 +93,14 @@ export default function AdminUsersPage() {
   }
 
   // Role handlers
-  const openCreateRole = () => { setRoleForm({ rol_name: '' }); setRoleModal('create') }
-  const openEditRole = (r) => { setSelectedRole(r); setRoleForm({ rol_name: r.RolName }); setRoleModal('edit') }
+  const openCreateRole = () => { setRoleForm({ rol_name: '', description: '' }); setRoleModal('create') }
+  const openEditRole = (r) => { setSelectedRole(r); setRoleForm({ rol_name: r.RolName, description: r.Description || '' }); setRoleModal('edit') }
 
   const handleCreateRole = async () => {
     if (!roleForm.rol_name.trim()) { toast.error('Ingresa un nombre de rol'); return }
     setSaving(true)
     try {
-      await createRole({ rol_name: roleForm.rol_name }).unwrap()
+      await createRole({ rol_name: roleForm.rol_name, description: roleForm.description }).unwrap()
       toast.success('Rol creado'); setRoleModal(null)
     } catch (e) { toast.error(e?.data?.detail || 'Error al crear rol') } finally { setSaving(false) }
   }
@@ -109,7 +109,7 @@ export default function AdminUsersPage() {
     if (!roleForm.rol_name.trim()) { toast.error('Ingresa un nombre'); return }
     setSaving(true)
     try {
-      await updateRole({ id: selectedRole.Id, rol_name: roleForm.rol_name }).unwrap()
+      await updateRole({ id: selectedRole.Id, rol_name: roleForm.rol_name, description: roleForm.description }).unwrap()
       toast.success('Rol actualizado'); setRoleModal(null)
     } catch (e) { toast.error(e?.data?.detail || 'Error al actualizar') } finally { setSaving(false) }
   }
@@ -231,7 +231,7 @@ export default function AdminUsersPage() {
             <table className="w-full text-sm">
               <thead>
                 <tr className="bg-slate-50 border-b border-slate-100">
-                  {['ID', 'Nombre del Rol', 'Usuarios asignados', isAdmin ? 'Acciones' : ''].map((h) => (
+                  {['ID', 'Nombre del Rol', 'Descripción', 'Usuarios asignados', isAdmin ? 'Acciones' : ''].map((h) => (
                     <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase whitespace-nowrap">{h}</th>
                   ))}
                 </tr>
@@ -247,6 +247,7 @@ export default function AdminUsersPage() {
                       <td className="px-4 py-3">
                         <span className={roleColor(r.RolName)}>{r.RolName}</span>
                       </td>
+                      <td className="px-4 py-3 text-slate-500 text-xs">{r.Description || '—'}</td>
                       <td className="px-4 py-3 text-slate-600">{assignedCount}</td>
                       {isAdmin && (
                         <td className="px-4 py-3">
@@ -276,13 +277,14 @@ export default function AdminUsersPage() {
       <Modal open={modal === 'create'} onClose={() => setModal(null)} title="Nuevo usuario admin" size="sm">
         <div className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
-            <div><label className="label">Nombre</label><input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
-            <div><label className="label">Apellido</label><input className="input" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></div>
+            <div><label className="label">Nombre *</label><input className="input" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} /></div>
+            <div><label className="label">Apellido *</label><input className="input" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></div>
           </div>
-          <div><label className="label">Email</label><input type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
-          <div><label className="label">Contraseña</label><input type="password" className="input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mínimo 6 caracteres" /></div>
+          <div><label className="label">Email *</label><input type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+          <div><label className="label">Teléfono</label><input type="tel" className="input" value={form.mobil_number} onChange={(e) => setForm({ ...form, mobil_number: e.target.value })} placeholder="+57 300 000 0000" /></div>
+          <div><label className="label">Contraseña *</label><input type="password" className="input" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mínimo 6 caracteres" /></div>
           <div>
-            <label className="label">Rol</label>
+            <label className="label">Rol *</label>
             <select className="input" value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })}>
               <option value="">— Selecciona un rol —</option>
               {roles.map((r) => <option key={r.Id} value={r.Id}>{r.RolName}</option>)}
@@ -302,6 +304,7 @@ export default function AdminUsersPage() {
             <div><label className="label">Apellido</label><input className="input" value={form.last_name} onChange={(e) => setForm({ ...form, last_name: e.target.value })} /></div>
           </div>
           <div><label className="label">Email</label><input type="email" className="input" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} /></div>
+          <div><label className="label">Teléfono</label><input type="tel" className="input" value={form.mobil_number} onChange={(e) => setForm({ ...form, mobil_number: e.target.value })} placeholder="+57 300 000 0000" /></div>
           <div>
             <label className="label">Rol</label>
             <select className="input" value={form.role_id} onChange={(e) => setForm({ ...form, role_id: e.target.value })}>
@@ -332,8 +335,12 @@ export default function AdminUsersPage() {
       <Modal open={roleModal === 'create'} onClose={() => setRoleModal(null)} title="Nuevo rol" size="sm">
         <div className="space-y-4">
           <div>
-            <label className="label">Nombre del rol</label>
-            <input className="input" value={roleForm.rol_name} onChange={(e) => setRoleForm({ rol_name: e.target.value })} placeholder="Ej: Analista, Supervisor..." />
+            <label className="label">Nombre del rol *</label>
+            <input className="input" value={roleForm.rol_name} onChange={(e) => setRoleForm((f) => ({ ...f, rol_name: e.target.value }))} placeholder="Ej: Analista, Supervisor..." />
+          </div>
+          <div>
+            <label className="label">Descripción</label>
+            <input className="input" value={roleForm.description} onChange={(e) => setRoleForm((f) => ({ ...f, description: e.target.value }))} placeholder="Descripción del rol..." />
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button onClick={() => setRoleModal(null)} className="btn-secondary">Cancelar</button>
@@ -345,8 +352,12 @@ export default function AdminUsersPage() {
       <Modal open={roleModal === 'edit'} onClose={() => setRoleModal(null)} title={`Editar rol: ${selectedRole?.RolName}`} size="sm">
         <div className="space-y-4">
           <div>
-            <label className="label">Nombre del rol</label>
-            <input className="input" value={roleForm.rol_name} onChange={(e) => setRoleForm({ rol_name: e.target.value })} />
+            <label className="label">Nombre del rol *</label>
+            <input className="input" value={roleForm.rol_name} onChange={(e) => setRoleForm((f) => ({ ...f, rol_name: e.target.value }))} />
+          </div>
+          <div>
+            <label className="label">Descripción</label>
+            <input className="input" value={roleForm.description} onChange={(e) => setRoleForm((f) => ({ ...f, description: e.target.value }))} />
           </div>
           <div className="flex gap-2 justify-end pt-2">
             <button onClick={() => setRoleModal(null)} className="btn-secondary">Cancelar</button>

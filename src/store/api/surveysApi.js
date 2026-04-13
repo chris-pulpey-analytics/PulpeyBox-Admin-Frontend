@@ -8,7 +8,7 @@ export const surveysApi = baseApi.injectEndpoints({
     }),
     getSurvey: builder.query({
       query: (id) => `/surveys/${id}`,
-      providesTags: (r, e, id) => [{ type: 'Surveys', id }],
+      providesTags: (_r, _e, id) => [{ type: 'Surveys', id }],
     }),
     createSurvey: builder.mutation({
       query: (body) => ({ url: '/surveys', method: 'POST', body }),
@@ -36,7 +36,7 @@ export const surveysApi = baseApi.injectEndpoints({
     // Questions (ProductsSurvey)
     getSurveyQuestions: builder.query({
       query: (id) => `/surveys/${id}/questions`,
-      providesTags: (r, e, id) => [{ type: 'SurveyQuestions', id }],
+      providesTags: (_r, _e, id) => [{ type: 'SurveyQuestions', id }],
     }),
     createSurveyQuestion: builder.mutation({
       query: ({ surveyId, product_name }) => ({
@@ -148,6 +148,25 @@ export const exportSurveys = (params = {}, format = 'xlsx') => {
   const token = localStorage.getItem('admin_token')
   return fetch(`/api/surveys/export?${query}`, {
     headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export const downloadSurveyAssignTemplate = () => {
+  const token = localStorage.getItem('admin_token')
+  return fetch('/api/surveys/assign-template', {
+    headers: { Authorization: `Bearer ${token}` },
+  })
+}
+
+export const assignUsersExcelToSurvey = (surveyId, file, statusId = 146) => {
+  const token = localStorage.getItem('admin_token')
+  const form = new FormData()
+  form.append('file', file)
+  form.append('status_id', String(statusId))
+  return fetch(`/api/surveys/${surveyId}/assign-users-excel`, {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` },
+    body: form,
   })
 }
 

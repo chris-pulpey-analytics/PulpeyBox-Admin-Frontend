@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { useCreateNewsMutation, useUpdateNewsMutation, useGetNewsItemQuery } from '../../store/api/newsApi'
 import { useGetSurveysQuery } from '../../store/api/surveysApi'
+import { useGetSettingsGroupedQuery } from '../../store/api/settingsApi'
 import { ArrowLeft, Save } from 'lucide-react'
 import toast from 'react-hot-toast'
 
 const EMPTY = {
   title: '', description: '', code: '', image_url: '',
   action_url: '', action_text: '', expiration_date: '', default: false,
-  linked_survey_id: '',
+  linked_survey_id: '', link_types_id: '', banners_types_id: ''
 }
 
 export default function NewsForm() {
@@ -18,10 +19,21 @@ export default function NewsForm() {
 
   const { data: existing } = useGetNewsItemQuery(id, { skip: !isEdit })
   const { data: surveysData } = useGetSurveysQuery({ page: 1, page_size: 100 })
+  
+  // Llamadas individuales aprovechando el ILIKE de group_name en el backend
+  const { data: linkTypesData } = useGetSettingsGroupedQuery({ group_name: 'LinkTypes' })
+  // Buscar "Banners" nos traerá Banners, BannersNews y BannersPromotions gracias al ILIKE
+  const { data: bannersData } = useGetSettingsGroupedQuery({ group_name: 'Banners' })
+
   const [createNews, { isLoading: creating }] = useCreateNewsMutation()
   const [updateNews, { isLoading: updating }] = useUpdateNewsMutation()
 
   const [form, setForm] = useState(EMPTY)
+
+  const linkTypes = linkTypesData?.[0]?.settings || []
+  
+  // Combinar todos los settings de los grupos de Banners devueltos
+  const allBannerTypes = bannersData ? bannersData.flatMap(g => g.settings) : []
 
   useEffect(() => {
     if (existing?.news) {
@@ -36,6 +48,8 @@ export default function NewsForm() {
         expiration_date: n.ExpirationDate ? n.ExpirationDate.split('T')[0] : '',
         default: n.Default || false,
         linked_survey_id: '',
+        link_types_id: n.LinkTypesId || '',
+        banners_types_id: n.BannersTypesId || ''
       })
     }
   }, [existing])
@@ -54,7 +68,13 @@ export default function NewsForm() {
   const handleSubmit = async (e) => {
     e.preventDefault()
     const { linked_survey_id, ...payload } = form
-    const body = { ...payload, expiration_date: payload.expiration_date || null }
+    const body = { 
+      ...payload, 
+      expiration_date: payload.expiration_date || null,
+      link_types_id: payload.link_types_id ? Number(payload.link_types_id) : null,
+      banners_types_id: payload.banners_types_id ? Number(payload.banners_types_id) : null
+    }
+    
     try {
       if (isEdit) {
         await updateNews({ id: Number(id), ...body }).unwrap()
@@ -68,15 +88,15 @@ export default function NewsForm() {
   }
 
   return (
-    <div className="max-w-2xl space-y-6">
+    <div className="max-w-3xl space-y-6">
       <div className="flex items-center gap-3">
         <button onClick={() => navigate(-1)} className="btn-ghost btn-sm"><ArrowLeft size={16} /></button>
         <h1 className="text-2xl font-bold text-slate-800">{isEdit ? 'Editar noticia' : 'Nueva noticia/promoción'}</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="card space-y-5">
-        <div className="grid grid-cols-2 gap-4">
-          <div className="col-span-2">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="col-span-1 md:col-span-2">
             <label className="label">Título *</label>
             <input required className="input" value={form.title} onChange={(e) => set('title', e.target.value)} placeholder="¡Oferta especial!" />
           </div>
@@ -88,21 +108,43 @@ export default function NewsForm() {
             <label className="label">Expiración</label>
             <input type="date" className="input" value={form.expiration_date} onChange={(e) => set('expiration_date', e.target.value)} />
           </div>
-          <div className="col-span-2">
+          
+          {/* Settings Fields */}
+          <div>
+            <label className="label">Tipo de Enlace (Link Type)</label>
+            <select className="input" value={form.link_types_id} onChange={(e) => set('link_types_id', e.target.value)}>
+              <option value="">Seleccione un tipo de enlace</option>
+              {linkTypes.map((t) => (
+                <option key={t.Id} value={t.Id}>{t.Name}</option>
+              ))}
+            </select>
+          </div>
+          
+          <div>
+            <label className="label">Tipo de Banner *</label>
+            <select required className="input" value={form.banners_types_id} onChange={(e) => set('banners_types_id', e.target.value)}>
+              <option value="">Seleccione un tipo de banner</option>
+              {allBannerTypes.map((b) => (
+                <option key={b.Id} value={b.Id}>{b.Name}</option>
+              ))}
+            </select>
+          </div>
+
+          <div className="col-span-1 md:col-span-2">
             <label className="label">Descripción *</label>
             <textarea required className="input resize-none" rows={3} value={form.description} onChange={(e) => set('description', e.target.value)} />
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <label className="label">URL de imagen</label>
             <input className="input" value={form.image_url} onChange={(e) => set('image_url', e.target.value)} placeholder="https://..." />
           </div>
 
           {/* Vinculación a encuesta */}
-          <div className="col-span-2 p-4 bg-violet-50 rounded-xl border border-violet-100">
+          <div className="col-span-1 md:col-span-2 p-4 bg-violet-50 rounded-xl border border-violet-100">
             <label className="label text-violet-700">Vincular a encuesta (opcional)</label>
             <select className="input" value={form.linked_survey_id} onChange={(e) => handleSurveyLink(e.target.value)}>
               <option value="">— Sin encuesta —</option>
-              {surveysData?.data?.map((s) => <option key={s.Id} value={s.Id}>{s.Name}</option>)}
+              {surveysData?.data?.map((s) => <option key={s.Id} value={s.Id}>{s.Code || '—'} - {s.Name}</option>)}
             </select>
             <p className="text-xs text-violet-500 mt-1.5">Al seleccionar una encuesta, la URL de acción se completará automáticamente.</p>
           </div>
@@ -115,7 +157,7 @@ export default function NewsForm() {
             <label className="label">Texto del botón</label>
             <input className="input" value={form.action_text} onChange={(e) => set('action_text', e.target.value)} placeholder="¡Participar!" />
           </div>
-          <div className="col-span-2">
+          <div className="col-span-1 md:col-span-2">
             <label className="flex items-center gap-2 cursor-pointer">
               <input type="checkbox" checked={form.default} onChange={(e) => set('default', e.target.checked)} className="w-4 h-4 rounded accent-violet-600" />
               <span className="text-sm text-slate-700 font-medium">Noticia por defecto</span>

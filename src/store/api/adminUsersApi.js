@@ -11,11 +11,17 @@ export const adminUsersApi = baseApi.injectEndpoints({
       providesTags: ['Roles'],
     }),
     createRole: builder.mutation({
-      query: (body) => ({ url: '/admin-users/roles', method: 'POST', body }),
+      query: ({ rol_name, description = '' }) => ({
+        url: '/admin-users/roles', method: 'POST',
+        body: { rol_name, description },
+      }),
       invalidatesTags: ['Roles'],
     }),
     updateRole: builder.mutation({
-      query: ({ id, ...body }) => ({ url: `/admin-users/roles/${id}`, method: 'PUT', body }),
+      query: ({ id, rol_name, description = '' }) => ({
+        url: `/admin-users/roles/${id}`, method: 'PUT',
+        body: { rol_name, description },
+      }),
       invalidatesTags: ['Roles'],
     }),
     deleteRole: builder.mutation({

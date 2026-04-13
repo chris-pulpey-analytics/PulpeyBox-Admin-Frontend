@@ -3,7 +3,7 @@ import { baseApi } from './baseApi'
 export const settingsApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
     getSettingsGrouped: builder.query({
-      query: () => '/settings/grouped',
+      query: (params = {}) => ({ url: '/settings/grouped', params }),
       providesTags: ['Settings', 'Groups'],
     }),
     getGroups: builder.query({
