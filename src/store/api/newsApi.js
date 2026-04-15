@@ -22,6 +22,17 @@ export const newsApi = baseApi.injectEndpoints({
       query: (id) => ({ url: `/news/${id}`, method: 'DELETE' }),
       invalidatesTags: ['News'],
     }),
+    previewUsersForNews: builder.query({
+      query: ({ newsId, ...params }) => ({ url: `/news/${newsId}/preview-users`, params }),
+    }),
+    assignNewsUsers: builder.mutation({
+      query: ({ newsId, ...body }) => ({
+        url: `/news/${newsId}/assign-users`,
+        method: 'POST',
+        body,
+      }),
+      invalidatesTags: ['News'],
+    }),
   }),
 })
 
@@ -31,6 +42,8 @@ export const {
   useCreateNewsMutation,
   useUpdateNewsMutation,
   useDeleteNewsMutation,
+  usePreviewUsersForNewsQuery,
+  useAssignNewsUsersMutation,
 } = newsApi
 
 export const assignUsersToNews = (newsId, userIds, status = 0) => {
@@ -69,12 +82,14 @@ export const exportNews = (params = {}, format = 'xlsx') => {
 }
 
 // Asegúrate de que tenga la palabra 'export'
-export const downloadBlob = (data, fileName) => {
-  const url = window.URL.createObjectURL(new Blob([data]));
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', fileName);
-  document.body.appendChild(link);
-  link.click();
-  link.remove();
-};
+export const downloadBlob = async (response, fileName) => {
+  const blob = await response.blob()
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = fileName
+  document.body.appendChild(a)
+  a.click()
+  document.body.removeChild(a)
+  window.URL.revokeObjectURL(url)
+}

@@ -2,6 +2,10 @@ import { baseApi } from './baseApi'
 
 export const surveysApi = baseApi.injectEndpoints({
   endpoints: (builder) => ({
+    getCategories: builder.query({
+      query: () => '/surveys/categories',
+      providesTags: ['Categories'],
+    }),
     getSurveys: builder.query({
       query: (params = {}) => ({ url: '/surveys', params }),
       providesTags: ['Surveys'],
@@ -105,6 +109,7 @@ export const surveysApi = baseApi.injectEndpoints({
 })
 
 export const {
+  useGetCategoriesQuery,
   useGetSurveysQuery,
   useGetSurveyQuery,
   useCreateSurveyMutation,

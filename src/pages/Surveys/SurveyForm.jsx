@@ -8,6 +8,7 @@ import {
   useGetSurveyAnswersQuery, useCreateSurveyAnswerMutation,
   useUpdateSurveyAnswerMutation, useDeleteSurveyAnswerMutation,
   usePreviewUsersForSurveyQuery, useAssignUsersToSurveyMutation,
+  useGetCategoriesQuery,
   downloadSurveyAssignTemplate, assignUsersExcelToSurvey, downloadBlob,
 } from '../../store/api/surveysApi'
 import { useGetSettingsGroupedQuery } from '../../store/api/settingsApi'
@@ -15,7 +16,11 @@ import { useGetDepartmentsQuery } from '../../store/api/locationsApi'
 import { ArrowLeft, Save, Plus, Pencil, Trash2, Users, Check, Upload, FileSpreadsheet, Download, AlertCircle } from 'lucide-react'
 import toast from 'react-hot-toast'
 
-const EMPTY = { name: '', code: '', title: '', description: '', survey_url: '', expiration_date: '', default: false }
+const EMPTY = {
+  name: '', code: '', title: '', description: '', survey_url: '',
+  expiration_date: '', default: false,
+  status_id: '', type_survey_id: '', category_id: '',
+}
 
 const TABS = [
   { id: 'info', label: 'Información' },
@@ -49,11 +54,16 @@ export default function SurveyForm() {
   const { data: departments } = useGetDepartmentsQuery()
 
   const grouped = settingsData || []
-  const getGroup = (kw) => grouped.find((g) => g.group_name?.toLowerCase().includes(kw))?.settings || []
-  const genders = getGroup('géner') || getGroup('gener')
-  const professions = getGroup('profesion') || getGroup('profesión')
-  const incomeRanges = getGroup('ingreso') || getGroup('income')
-  const surveyStatuses = getGroup('encuesta') || getGroup('survey')
+  const getGroup = (kw) =>
+    grouped.find((g) => g.group_name?.toLowerCase().includes(kw.toLowerCase()))?.settings || []
+  const genders       = getGroup('Gender')
+  const professions   = getGroup('Profession')
+  const incomeRanges  = getGroup('IncomeRange')
+  const surveyStatuses = getGroup('SurveyStatus')
+  const surveyTypes    = getGroup('TypeSurvey')
+
+  const { data: categoriesData } = useGetCategoriesQuery()
+  const surveyCategories = categoriesData || []
 
   const [tab, setTab] = useState('info')
   const [form, setForm] = useState(EMPTY)
@@ -94,13 +104,22 @@ export default function SurveyForm() {
         description: s.Description || '', survey_url: s.SurveyUrl || '',
         expiration_date: s.ExpirationDate ? s.ExpirationDate.split('T')[0] : '',
         default: s.Default || false,
+        status_id: s.StatusId || '',
+        type_survey_id: s.TypeSurveyId || '',
+        category_id: s.CategoryId || '',
       })
     }
   }, [existing])
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    const payload = { ...form, expiration_date: form.expiration_date || null }
+    const payload = {
+      ...form,
+      expiration_date:  form.expiration_date  || null,
+      status_id:        form.status_id        ? Number(form.status_id)       : null,
+      type_survey_id:   form.type_survey_id   ? Number(form.type_survey_id)  : null,
+      category_id:      form.category_id      ? Number(form.category_id)     : null,
+    }
     try {
       if (isEdit) {
         await updateSurvey({ id: Number(id), ...payload }).unwrap()
@@ -217,6 +236,30 @@ export default function SurveyForm() {
               <label className="label">Fecha de expiración</label>
               <input type="date" className="input" value={form.expiration_date} onChange={(e) => set('expiration_date', e.target.value)} />
             </div>
+
+            {/* ── Campos de catálogo ── */}
+            <div>
+              <label className="label">Estado</label>
+              <select className="input" value={form.status_id} onChange={(e) => set('status_id', e.target.value)}>
+                <option value="">— Sin estado —</option>
+                {surveyStatuses.map((o) => <option key={o.Id} value={o.Id}>{o.Name}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="label">Tipo de encuesta</label>
+              <select className="input" value={form.type_survey_id} onChange={(e) => set('type_survey_id', e.target.value)}>
+                <option value="">— Sin tipo —</option>
+                {surveyTypes.map((o) => <option key={o.Id} value={o.Id}>{o.Name}</option>)}
+              </select>
+            </div>
+            <div className="col-span-2">
+              <label className="label">Categoría</label>
+              <select className="input" value={form.category_id} onChange={(e) => set('category_id', e.target.value)}>
+                <option value="">— Sin categoría —</option>
+                {surveyCategories.map((o) => <option key={o.Id} value={o.Id}>{o.Name}</option>)}
+              </select>
+            </div>
+
             <div className="col-span-2">
               <label className="label">Título</label>
               <input className="input" value={form.title} onChange={(e) => set('title', e.target.value)} />

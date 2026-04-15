@@ -38,6 +38,13 @@
   .sidebar-link.active { @apply text-white bg-violet-600 shadow-lg shadow-violet-900/30; }
 }
 
+/* Loader progress animation */
+@keyframes progress {
+  0%   { transform: translateX(-100%); }
+  50%  { transform: translateX(0%); }
+  100% { transform: translateX(100%); }
+}
+
 /* Leaflet fix */
 .leaflet-container { z-index: 1; border-radius: 1rem; }
 .leaflet-control-zoom { border: none !important; box-shadow: 0 2px 8px rgba(0,0,0,0.15) !important; }

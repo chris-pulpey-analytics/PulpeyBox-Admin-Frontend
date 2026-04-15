@@ -42,7 +42,7 @@ const BoolSelect = ({ value, onChange, label }) => (
   </div>
 )
 
-const CatalogSelect = ({ value, onChange, label, options }) => (
+export const CatalogSelect = ({ value, onChange, label, options }) => (
   <div>
     <label className="label">{label}</label>
     <select className="input" value={value} onChange={(e) => onChange(e.target.value)}>
@@ -71,15 +71,15 @@ export default function UsersPage() {
   const getGroup = (keyword) =>
     grouped.find((g) => g.group_name?.toLowerCase().includes(keyword.toLowerCase()))?.settings || []
 
-  const genders = getGroup('géner') || getGroup('gener')
-  const maritalStatuses = getGroup('civil') || getGroup('marital')
-  const roleHouses = getGroup('hogar') || getGroup('rol familiar')
-  const incomeRanges = getGroup('ingreso') || getGroup('income')
-  const professions = getGroup('profesion') || getGroup('profesión')
-  const numberChildren = getGroup('hijo') || getGroup('children')
-  const levelAcademic = getGroup('academ') || getGroup('nivel')
-  const frequencies = getGroup('actividad') || getGroup('frecuencia')
-  const surveyStatuses = getGroup('encuesta') || getGroup('survey')
+  const genders = getGroup('Gender') 
+  const maritalStatuses = getGroup('MaritalStatus') 
+  const roleHouses = getGroup('RoleHouse') 
+  const incomeRanges = getGroup('IncomeRange') 
+  const professions = getGroup('Profession') 
+  const numberChildren = getGroup('NumberChildren') 
+  const levelAcademic = getGroup('LevelAcademic') 
+  const frequencies = getGroup('FrequencyActivities') 
+  const surveyStatuses = getGroup('SurveyStatus') 
 
   const cities = citiesData?.data || citiesData || []
   const surveyList = surveysData?.data || []

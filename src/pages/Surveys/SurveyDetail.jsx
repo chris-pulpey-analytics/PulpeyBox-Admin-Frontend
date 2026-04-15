@@ -1,10 +1,10 @@
 import { useParams, useNavigate } from 'react-router-dom'
 import { useState } from 'react'
-import { useGetSurveyResponsesQuery } from '../../store/api/surveysApi'
-import { ArrowLeft, Users, BarChart2, PieChart as PieIcon, Settings } from 'lucide-react'
+import { useGetSurveyResponsesQuery, useGetSurveyQuery } from '../../store/api/surveysApi'
+import { ArrowLeft, Users, BarChart2, PieChart as PieIcon, Settings, List } from 'lucide-react'
 import {
   BarChart, Bar, PieChart, Pie, Cell,
-  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend,
+  XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
 } from 'recharts'
 import SurveyConfig from './SurveyConfig'
 
@@ -14,6 +14,7 @@ export default function SurveyDetail() {
   const { id } = useParams()
   const navigate = useNavigate()
   const { data, isLoading } = useGetSurveyResponsesQuery(id)
+  const { data: surveyData } = useGetSurveyQuery(id)
   const [activeTab, setActiveTab] = useState('stats')
 
   if (isLoading) return (
@@ -42,6 +43,12 @@ export default function SurveyDetail() {
             Estadísticas
           </button>
           <button
+            onClick={() => setActiveTab('users')}
+            className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === 'users' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
+          >
+            <List size={14} /> Usuarios
+          </button>
+          <button
             onClick={() => setActiveTab('config')}
             className={`flex items-center gap-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${activeTab === 'config' ? 'bg-white text-violet-600 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}
           >
@@ -52,6 +59,63 @@ export default function SurveyDetail() {
 
       {activeTab === 'config' ? (
         <SurveyConfig surveyId={id} />
+      ) : activeTab === 'users' ? (
+        <div className="card p-0 overflow-hidden">
+          <div className="px-4 py-3 border-b border-slate-100 flex items-center justify-between">
+            <p className="text-sm font-semibold text-slate-700">
+              Usuarios asignados
+              {surveyData?.users?.length > 0 && (
+                <span className="ml-2 text-xs font-normal text-slate-400">({surveyData.users.length})</span>
+              )}
+            </p>
+          </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="bg-slate-50 border-b border-slate-100">
+                  {['ID', 'Nombre', 'Email', 'Estado', 'Edad', 'Género', 'Ciudad', 'Departamento', 'Respondida'].map((h) => (
+                    <th key={h} className="text-left px-4 py-3 text-xs font-semibold text-slate-500 uppercase tracking-wide whitespace-nowrap">{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {!surveyData ? (
+                  Array.from({ length: 5 }).map((_, i) => (
+                    <tr key={i} className="border-b border-slate-50">
+                      {Array.from({ length: 9 }).map((_, j) => (
+                        <td key={j} className="px-4 py-3"><div className="h-4 bg-slate-100 rounded animate-pulse" /></td>
+                      ))}
+                    </tr>
+                  ))
+                ) : surveyData.users?.length === 0 ? (
+                  <tr><td colSpan={9} className="text-center py-16 text-slate-400">Sin usuarios asignados</td></tr>
+                ) : (
+                  surveyData.users?.map((u) => (
+                    <tr key={u.Id} className="table-row">
+                      <td className="px-4 py-3 font-mono text-slate-500 text-xs">{u.Id}</td>
+                      <td className="px-4 py-3 font-medium text-slate-800 whitespace-nowrap">{u.Name} {u.LastName}</td>
+                      <td className="px-4 py-3 text-slate-600 max-w-[180px] truncate">{u.Email}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                          u.status_name?.toLowerCase().includes('complet') ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                        }`}>
+                          {u.status_name || '—'}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-slate-600 text-center">{u.edad !== '-' ? u.edad : '—'}</td>
+                      <td className="px-4 py-3 text-slate-600">{u.genero !== '-' ? u.genero : '—'}</td>
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{u.ciudad !== '-' ? u.ciudad : '—'}</td>
+                      <td className="px-4 py-3 text-slate-600 whitespace-nowrap">{u.departamento !== '-' ? u.departamento : '—'}</td>
+                      <td className="px-4 py-3 text-slate-500 whitespace-nowrap">
+                        {u.AnsweredDate ? new Date(u.AnsweredDate).toLocaleDateString('es-GT') : '—'}
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
       ) : (
         <>
           {/* KPIs */}
